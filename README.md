@@ -12,9 +12,14 @@ This package depends on R (>= 4.0.0). You can install the package KMD by (the pa
 devtools::install_github("zh2395/KMD")
 ```
 
+Alternatively, download the entire folder, and execute the following command in R:
+``` r
+install.packages("~/Downloads/KMD-main", repos=NULL, type="source")
+```
+
 You can uninstall the package by:
 ```r
-remove.packages("KPC")
+remove.packages("KMD")
 ```
 
 ## Usage of the functions
@@ -30,6 +35,7 @@ The inputs are:
 The recommended default value for `Knn` is 1;
 `Kernel`: an M by M kernel matrix with row i and column j being the kernel value k(i, j); or "discrete" which indicates using the discrete kernel.
 ``` r
+library(KMD)
 n = 60
 d = 2
 set.seed(1)
