@@ -65,7 +65,7 @@ The inputs of `KMD_test` are:
 `Y`: a vector of length n, indicating the labels (from 1 to M) of the data;
 `M`: the number of possible labels;
 `Knn`: the number of nearest neighbors to use, or "MST".
-The recommended default value for `Knn` is 1;
+The recommended default value for `Knn` is 0.1n;
 `Kernel`: an M by M kernel matrix with row i and column j being the kernel value k(i, j); or "discrete" which indicates using the discrete kernel;
 `Permutation`: TRUE or FALSE; whether to perform permutation test or the asymptotic test;
 `B`: the number of permutations to perform, only used for permutation test.
@@ -80,17 +80,17 @@ X = rbind(X1,X2,X3)
 Y = c(rep(1,100),rep(2,100),rep(3,100))
 
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete"))
-# p-value = 0.1117764. A small p-value since the three distributions are not the same.
+# A small p-value since the three distributions are not the same.
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete", Permutation = FALSE))
-# p-value = 0.1097086 of the asymptotic test is similar to that of the permutation test
+# p-value of the asymptotic test is similar to that of the permutation test
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = diag(c(10,1,1))))
-# p-value = 0.01397206 is improved by using a different kernel
+# p-value is improved by using a different kernel
 print(KMD_test(X, Y, M = 3, Knn = 30, Kernel = "discrete"))
-# p-value = 0.001996008. Knn = 0.1n is the suggested choice
+# The suggested choice Knn = 0.1n yields a very small p-value.
 print(KMD_test(X, Y, M = 3, Knn = "MST", Kernel = "discrete"))
-# p-value = 0.04191617. One can also use the MST.
+# One can also use the MST.
 print(KMD_test(X, Y, M = 3, Knn = 2, Kernel = "discrete"))
-# p-value = 0.04590818. MST has similar performance as 2-NN, which is between 1-NN and 30-NN
+# MST has similar performance as 2-NN, which is between 1-NN and 30-NN
 
 # Check null distribution of the z values
 ni = 100
