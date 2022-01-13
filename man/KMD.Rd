@@ -13,9 +13,9 @@ KMD(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete")
 
 \item{M}{the number of possible labels}
 
-\item{Knn}{the number of K-nearest neighbor to use or "MST"}
+\item{Knn}{the number of nearest neighbors to use, or "MST"}
 
-\item{Kernel}{an M by M kernel matrix with row i and column j being \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.}
+\item{Kernel}{an M by M kernel matrix with row i and column j being the kernel value \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.}
 }
 \value{
 The algorithm returns a real number which is the sample KMD and asymptotically between 0 and 1.
@@ -43,11 +43,12 @@ X2[,1] = X2[,1] + 1
 X = rbind(X1,X2)
 Y = c(rep(1,n/2),rep(2,n/2))
 print(KMD(X, Y, M = 2, Knn = 1, Kernel = "discrete"))
+# 0.9344444. X1 and X2 are mutually singular, so the theoretical KMD is 1.
 print(KMD(X, Y, M = 2, Knn = 1, Kernel = base::diag(c(1,1))))
+# 0.9344444. This is essentially the same as specifying the discrete kernel above.
 print(KMD(X, Y, M = 2, Knn = 2, Kernel = "discrete"))
-print(KMD(X, Y, M = 2, Knn = 2, Kernel = base::diag(c(1,1))))
 print(KMD(X, Y, M = 2, Knn = "MST", Kernel = "discrete"))
-print(KMD(X, Y, M = 2, Knn = "MST", Kernel = base::diag(c(1,1))))
+# 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here) to estimate the same theoretical quantity.
 }
 \seealso{
 \code{\link{KMD_test}}

@@ -83,8 +83,8 @@ get_neighbors = function(X,Knn) {
 #' @param X the data matrix (n by dx)
 #' @param Y a vector of length n, indicating the labels (from 1 to M) of the data
 #' @param M the number of possible labels
-#' @param Knn the number of K-nearest neighbor to use or "MST"
-#' @param Kernel an M by M kernel matrix with row i and column j being \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.
+#' @param Knn the number of nearest neighbors to use, or "MST"
+#' @param Kernel an M by M kernel matrix with row i and column j being the kernel value \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.
 #'
 #' @import data.table
 #' @export
@@ -100,11 +100,12 @@ get_neighbors = function(X,Knn) {
 #' X = rbind(X1,X2)
 #' Y = c(rep(1,n/2),rep(2,n/2))
 #' print(KMD(X, Y, M = 2, Knn = 1, Kernel = "discrete"))
+#' # 0.9344444. X1 and X2 are mutually singular, so the theoretical KMD is 1.
 #' print(KMD(X, Y, M = 2, Knn = 1, Kernel = base::diag(c(1,1))))
+#' # 0.9344444. This is essentially the same as specifying the discrete kernel above.
 #' print(KMD(X, Y, M = 2, Knn = 2, Kernel = "discrete"))
-#' print(KMD(X, Y, M = 2, Knn = 2, Kernel = base::diag(c(1,1))))
 #' print(KMD(X, Y, M = 2, Knn = "MST", Kernel = "discrete"))
-#' print(KMD(X, Y, M = 2, Knn = "MST", Kernel = base::diag(c(1,1))))
+#' # 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here) to estimate the same theoretical quantity.
 KMD = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete") {
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
@@ -185,7 +186,7 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #'
 #' Testing based on the kernel measure of multi-sample dissimilarity (KMD).
 #' Both permutation test and asymptotic test are available.
-#' The test is consistent against all alternatives where at least
+#' The tests are consistent against all alternatives where at least
 #' two samples have different distributions.
 #'
 #' The kernel measure of multi-sample dissimilarity (KMD) measures the dissimilarity between
@@ -203,8 +204,8 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #' @param X the data matrix (n by dx)
 #' @param Y a vector of length n, indicating the labels (from 1 to M) of the data
 #' @param M the number of possible labels
-#' @param Knn the number of K-nearest neighbor to use
-#' @param Kernel an M by M kernel matrix with row i and column j being \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.
+#' @param Knn the number of nearest neighbors to use, or "MST"
+#' @param Kernel an M by M kernel matrix with row i and column j being the kernel value \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.
 #' @param Permutation TRUE or FALSE; whether to perform permutation test or the asymptotic test.
 #' @param B the number of permutations to perform, only used for permutation test.
 #'
@@ -222,7 +223,7 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #' X = rbind(X1,X2,X3)
 #' Y = c(rep(1,100),rep(2,100),rep(3,100))
 #' print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete"))
-#' # p-value = 0.1117764
+#' # p-value = 0.1117764. A small p-value since the three distributions are not the same.
 #' print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete", Permutation = FALSE))
 #' # p-value = 0.1097086 of the asymptotic test is similar to that of the permutation test
 #' print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = diag(c(10,1,1))))
@@ -248,7 +249,8 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #'   xlim = c(-4,4), ylim = c(0,0.5), main = expression(paste(n[i]," = 100")),
 #'   xlab = expression(paste("normalized ",hat(eta))))
 #' lines(seq(-5,5,length=1000),dnorm(seq(-5,5,length=1000)),col="red")
-KMD_test = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete", Permutation = TRUE, B = 500) {
+#' # The histogram of the normalized KMD is close to that of a standard normal distribution.
+KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Kernel = "discrete", Permutation = TRUE, B = 500) {
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
     discrete_kernel = TRUE

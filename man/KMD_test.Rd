@@ -8,7 +8,7 @@ KMD_test(
   X,
   Y,
   M = length(unique(Y)),
-  Knn = 1,
+  Knn = ceiling(length(Y)/10),
   Kernel = "discrete",
   Permutation = TRUE,
   B = 500
@@ -21,9 +21,9 @@ KMD_test(
 
 \item{M}{the number of possible labels}
 
-\item{Knn}{the number of K-nearest neighbor to use}
+\item{Knn}{the number of nearest neighbors to use, or "MST"}
 
-\item{Kernel}{an M by M kernel matrix with row i and column j being \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.}
+\item{Kernel}{an M by M kernel matrix with row i and column j being the kernel value \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.}
 
 \item{Permutation}{TRUE or FALSE; whether to perform permutation test or the asymptotic test.}
 
@@ -36,7 +36,7 @@ If Permutation == FALSE, asymptotic test is performed and a 1 by 2 matrix: (z va
 \description{
 Testing based on the kernel measure of multi-sample dissimilarity (KMD).
 Both permutation test and asymptotic test are available.
-The test is consistent against all alternatives where at least
+The tests are consistent against all alternatives where at least
 two samples have different distributions.
 }
 \details{
@@ -61,7 +61,7 @@ X3 = matrix(rnorm(100*d,sd=sqrt(2)), nrow = 100, ncol = d)
 X = rbind(X1,X2,X3)
 Y = c(rep(1,100),rep(2,100),rep(3,100))
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete"))
-# p-value = 0.1117764
+# p-value = 0.1117764. A small p-value since the three distributions are not the same.
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = "discrete", Permutation = FALSE))
 # p-value = 0.1097086 of the asymptotic test is similar to that of the permutation test
 print(KMD_test(X, Y, M = 3, Knn = 1, Kernel = diag(c(10,1,1))))
@@ -87,6 +87,7 @@ hist(sapply(1:1000, Null_KMD), breaks = c(-Inf,seq(-5,5,length=50),Inf), freq = 
   xlim = c(-4,4), ylim = c(0,0.5), main = expression(paste(n[i]," = 100")),
   xlab = expression(paste("normalized ",hat(eta))))
 lines(seq(-5,5,length=1000),dnorm(seq(-5,5,length=1000)),col="red")
+# The histogram of the normalized KMD is close to that of a standard normal distribution.
 }
 \seealso{
 \code{\link{KMD}}
