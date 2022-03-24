@@ -15,7 +15,7 @@ KMD_test(
 )
 }
 \arguments{
-\item{X}{the data matrix (n by dx)}
+\item{X}{the data matrix (n by dx) or the distance/similarity matrix (n by n)}
 
 \item{Y}{a vector of length n, indicating the labels (from 1 to M) of the data}
 
@@ -51,6 +51,12 @@ large value of sample KMD. The permutation test returns the p-value given by
 and B is the total number of permutations that have been performed.
 The asymptotic test first normalizes the KMD by the square root of the permutation variance,
 and then returns the p-value given by: P(N(0,1) > normalized KMD).
+
+If X is an n by n matrix, it will be interpreted as a distance/similarity matrix.
+In such case, MST requires it to be symmetric (an undirected graph).
+K-NN graph does not require it to be symmetric, with the nearest neighbors of point i computed based on the i-th row, and ties broken at random.
+The diagonal terms (self-distances) will be ignored.
+If X is an n by dx data matrix, Euclidean distance will be used for computing the K-NN graph (ties broken at random) and the MST.
 }
 \examples{
 d = 2

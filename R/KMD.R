@@ -78,9 +78,14 @@ get_neighbors = function(X,Knn) {
 #' and a large value indicates the corresponding distributions are different.
 #' The population quantity is 0 if and only if all distributions are the same,
 #' and 1 if and only if all distributions are mutually singular.
-#' Euclidean distance is used for computing the K-NN graph and the MST.
 #'
-#' @param X the data matrix (n by dx)
+#' If X is an n by n matrix, it will be interpreted as a distance/similarity matrix.
+#' In such case, MST requires it to be symmetric (an undirected graph).
+#' K-NN graph does not require it to be symmetric, with the nearest neighbors of point i computed based on the i-th row, and ties broken at random.
+#' The diagonal terms (self-distances) will be ignored.
+#' If X is an n by dx data matrix, Euclidean distance will be used for computing the K-NN graph (ties broken at random) and the MST.
+#'
+#' @param X the data matrix (n by dx) or the distance/similarity matrix (n by n)
 #' @param Y a vector of length n, indicating the labels (from 1 to M) of the data
 #' @param M the number of possible labels
 #' @param Knn the number of nearest neighbors to use, or "MST"
@@ -107,6 +112,8 @@ get_neighbors = function(X,Knn) {
 #' print(KMD(X, Y, M = 2, Knn = "MST", Kernel = "discrete"))
 #' # 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here) to estimate the same theoretical quantity.
 KMD = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete") {
+  if (!is.numeric(Y)) stop("Input Y is not numeric.")
+  if (sum((Y < 1) || (Y > M)) >= 1) stop("Label Y should be in 1,...,M.")
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
     discrete_kernel = TRUE
@@ -123,7 +130,21 @@ KMD = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete") {
     # First case: Knn graph
     if ((floor(Knn) != Knn) || (Knn <= 0)) stop("Knn should be a positive integer or the string MST.")
     if (Knn + 2 > nrow(X)) stop("n should be greater than Knn + 1")
-    nn_index_X = get_neighbors(X,Knn)
+    if (nrow(X) == ncol(X)) {
+      if (sum(diag(X)) != 0) warning("The distance of some data point to itself is non-zero. Self-distances are ignored when computing the nearest neighbors.")
+      node_neighbors = function(i) {
+        tie_dist <- sort(X[i,-i], partial = Knn)[Knn]
+        id_small <- which(X[i,-i] < tie_dist)
+        id_small = id_small + (id_small >= i)
+        id_equal = which(X[i,-i] == tie_dist)
+        if (length(id_equal) == 1) return(c(id_small,id_equal + (id_equal >= i)))
+        if (length(id_equal) > 1) return(c(id_small, sample(id_equal + (id_equal >= i), Knn-length(id_small))))
+      }
+      nn_index_X = do.call(rbind, lapply(1:nrow(X),node_neighbors))
+    }
+    else {
+      nn_index_X = get_neighbors(X,Knn)
+    }
   }
   else {
     # Second case: MST
@@ -138,9 +159,11 @@ KMD = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete") {
   if (discrete_kernel) mean_Kii = 1
   else mean_Kii = sum(diag(Kernel)*n_i)/n
 
-  node_calculator = function(j) return(sum(Kernel[Y[j],Y[nn_index_X[j,]]]))
+  node_calculator = function(j) sum(Kernel[Y[j],Y[nn_index_X[j,]]])
   return((mean(sapply(1:n, node_calculator))/Knn - U_stats)/(mean_Kii - U_stats))
 }
+
+
 
 # Calculate KMD using minimum spanning tree (MST).
 KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
@@ -161,13 +184,24 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
     res = Kernel[Y[1],Y[2]] + Kernel[Y[n-1],Y[n]]
     return(((sum(sapply(2:(n-1), node_calculator))/2 + res)/n - U_stats)/(mean_Kii - U_stats))
   }
+
   # MST in general dimension
-  out=mlpack::emst(as.data.frame(X))$output
-  # (n-1) by 3 matrix
-  # the first and second columns correspond to "from" and "to" indices
-  # the index starts from 0
-  out[,1] = out[,1] + 1
-  out[,2] = out[,2] + 1
+  if (nrow(X) == ncol(X)) {
+    # MST from distance matrix
+    X = igraph::graph_from_adjacency_matrix(X,
+                  mode = "undirected", weighted = TRUE)
+    mst = igraph::mst(X)
+    out  = igraph::get.edges(mst,1:(igraph::ecount(mst)))
+    # (n-1) by 2 matrix; the first and second columns correspond to "from" and "to" indices
+  }
+  else {
+    # Euclidean MST
+    out = mlpack::emst(as.data.frame(X))$output
+    # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
+    # the index starts from 0
+    out[,1] = out[,1] + 1
+    out[,2] = out[,2] + 1
+  }
 
   tmp = matrix(0,n,2)
   # the first column is the degree of node i
@@ -201,7 +235,13 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #' The asymptotic test first normalizes the KMD by the square root of the permutation variance,
 #' and then returns the p-value given by: P(N(0,1) > normalized KMD).
 #'
-#' @param X the data matrix (n by dx)
+#' If X is an n by n matrix, it will be interpreted as a distance/similarity matrix.
+#' In such case, MST requires it to be symmetric (an undirected graph).
+#' K-NN graph does not require it to be symmetric, with the nearest neighbors of point i computed based on the i-th row, and ties broken at random.
+#' The diagonal terms (self-distances) will be ignored.
+#' If X is an n by dx data matrix, Euclidean distance will be used for computing the K-NN graph (ties broken at random) and the MST.
+#'
+#' @param X the data matrix (n by dx) or the distance/similarity matrix (n by n)
 #' @param Y a vector of length n, indicating the labels (from 1 to M) of the data
 #' @param M the number of possible labels
 #' @param Knn the number of nearest neighbors to use, or "MST"
@@ -251,6 +291,8 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #' lines(seq(-5,5,length=1000),dnorm(seq(-5,5,length=1000)),col="red")
 #' # The histogram of the normalized KMD is close to that of a standard normal distribution.
 KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Kernel = "discrete", Permutation = TRUE, B = 500) {
+  if (!is.numeric(Y)) stop("Input Y is not numeric.")
+  if (sum((Y < 1) || (Y > M)) >= 1) stop("Label Y should be in 1,...,M.")
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
     discrete_kernel = TRUE
@@ -271,7 +313,21 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
     if (Knn != "MST") {
       if ((floor(Knn) != Knn) || (Knn <= 0)) stop("Knn should be a positive integer or the string MST.")
       if (Knn + 2 > nrow(X)) stop("n should be greater than Knn + 1")
-      nn_index_X = get_neighbors(X,Knn)
+      if (nrow(X) == ncol(X)) {
+        if (sum(diag(X)) != 0) warning("The distance of some data point to itself is non-zero. Self-distances are ignored when computing the nearest neighbors.")
+        node_neighbors = function(i) {
+          tie_dist <- sort(X[i,-i], partial = Knn)[Knn]
+          id_small <- which(X[i,-i] < tie_dist)
+          id_small = id_small + (id_small >= i)
+          id_equal = which(X[i,-i] == tie_dist)
+          if (length(id_equal) == 1) return(c(id_small,id_equal + (id_equal >= i)))
+          if (length(id_equal) > 1) return(c(id_small, sample(id_equal + (id_equal >= i), Knn-length(id_small))))
+        }
+        nn_index_X = do.call(rbind, lapply(1:nrow(X),node_neighbors))
+      }
+      else {
+        nn_index_X = get_neighbors(X,Knn)
+      }
 
       Perm_stat = function(Y,resample_vector) {
         Y = Y[resample_vector]
@@ -293,12 +349,23 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
       }
       else {
         # Case 2.2: MST in general dimension
-        out=mlpack::emst(as.data.frame(X))$output
-        # (n-1) by 3 matrix
-        # the first and second columns correspond to "from" and "to" indices
-        # the index starts from 0
-        out[,1] = out[,1] + 1
-        out[,2] = out[,2] + 1
+        if (nrow(X) == ncol(X)) {
+          # MST from distance matrix
+          X = igraph::graph_from_adjacency_matrix(X,
+                                                  mode = "undirected", weighted = TRUE)
+          mst = igraph::mst(X)
+          out  = igraph::get.edges(mst,1:(igraph::ecount(mst)))
+          # (n-1) by 2 matrix; the first and second columns correspond to "from" and "to" indices
+        }
+        else {
+          # Euclidean MST
+          out = mlpack::emst(as.data.frame(X))$output
+          # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
+          # the index starts from 0
+          out[,1] = out[,1] + 1
+          out[,2] = out[,2] + 1
+        }
+
 
         Perm_stat = function(Y,resample_vector) {
           Y = Y[resample_vector]
@@ -330,8 +397,23 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
     if ((floor(Knn) != Knn) || (Knn <= 0)) stop("Knn should be a positive integer or the string MST.")
     if (Knn + 2 > nrow(X)) stop("n should be greater than Knn + 1")
     n = dim(X)[1]
-    nn_index_X = get_neighbors(X,Knn)
-    node_calculator = function(j) return(sum(Kernel[Y[j],Y[nn_index_X[j,]]]))
+    if (nrow(X) == ncol(X)) {
+      #node_neighbors = function(i) FastKNN::k.nearest.neighbors(i,X,k=Knn)
+      if (sum(diag(X)) != 0) warning("The distance of some data point to itself is non-zero. Self-distances are ignored when computing the nearest neighbors.")
+      node_neighbors = function(i) {
+        tie_dist <- sort(X[i,-i], partial = Knn)[Knn]
+        id_small <- which(X[i,-i] < tie_dist)
+        id_small = id_small + (id_small >= i)
+        id_equal = which(X[i,-i] == tie_dist)
+        if (length(id_equal) == 1) return(c(id_small,id_equal + (id_equal >= i)))
+        if (length(id_equal) > 1) return(c(id_small, sample(id_equal + (id_equal >= i), Knn-length(id_small))))
+      }
+      nn_index_X = do.call(rbind, lapply(1:nrow(X),node_neighbors))
+    }
+    else {
+      nn_index_X = get_neighbors(X,Knn)
+    }
+    node_calculator = function(j) sum(Kernel[Y[j],Y[nn_index_X[j,]]])
     First_term_in_numerator = mean(sapply(1:n, node_calculator))/Knn
 
     num_in_neighbors = rep(0,n)
@@ -360,12 +442,23 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
     }
     else {
       # Case 2.2: MST in general dimension
-      out=mlpack::emst(as.data.frame(X))$output
-      # (n-1) by 3 matrix
-      # the first and second columns correspond to "from" and "to" indices
-      # the index starts from 0
-      out[,1] = out[,1] + 1
-      out[,2] = out[,2] + 1
+      if (nrow(X) == ncol(X)) {
+        # MST from distance matrix
+        X = igraph::graph_from_adjacency_matrix(X,
+                  mode = "undirected", weighted = TRUE)
+        mst = igraph::mst(X)
+        out  = igraph::get.edges(mst,1:(igraph::ecount(mst)))
+        # (n-1) by 2 matrix; the first and second columns correspond to "from" and "to" indices
+      }
+      else {
+        # Euclidean MST
+        out = mlpack::emst(as.data.frame(X))$output
+        # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
+        # the index starts from 0
+        out[,1] = out[,1] + 1
+        out[,2] = out[,2] + 1
+      }
+
       tmp = matrix(0,n,2)
       # the first column is the degree of node i
       # the second column is the sum of k(xi,x_{N(i)})
