@@ -28,7 +28,7 @@ See the documentation (help page) of the R package for more details.
 
 `KMD` implements the KMD estimator based on geometric graphs.
 The inputs are:
-`X`: the data matrix of n rows;
+`X`: the data matrix (n by dx) or the distance/similarity matrix (n by n);
 `Y`: a vector of length n, indicating the labels (from 1 to M) of the data;
 `M`: the number of possible labels;
 `Knn`: the number of nearest neighbors to use, or "MST".
@@ -61,7 +61,7 @@ The null hypothesis that all samples are from the same distribution is rejected 
 The asymptotic test first normalizes the KMD by the square root of the permutation variance, and then returns the p-value given by: P(N(0,1) > normalized KMD).
 
 The inputs of `KMD_test` are:
-`X`: the data matrix of n rows;
+`X`: the data matrix (n by dx) or the distance/similarity matrix (n by n);
 `Y`: a vector of length n, indicating the labels (from 1 to M) of the data;
 `M`: the number of possible labels;
 `Knn`: the number of nearest neighbors to use, or "MST".
