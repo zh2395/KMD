@@ -1,6 +1,6 @@
 Package: KMD
 Type: Package
-Title: Kernel Measure of Multi-sample Dissimilarity
+Title: Kernel Measure of Multi-Sample Dissimilarity
 Version: 0.1.0
 Authors@R: 
     person("Zhen", "Huang", , "zh2395@columbia.edu", role = c("aut", "cre"))
