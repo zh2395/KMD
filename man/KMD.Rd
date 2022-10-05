@@ -18,7 +18,7 @@ KMD(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete")
 \item{Kernel}{an M by M kernel matrix with row i and column j being the kernel value \eqn{k(i, j)}; or "discrete" which indicates using the discrete kernel.}
 }
 \value{
-The algorithm returns a real number which is the sample KMD and asymptotically between 0 and 1.
+The algorithm returns a real number which is the sample KMD and is asymptotically between 0 and 1.
 }
 \description{
 Compute the kernel measure of multi-sample dissimilarity (KMD) with directed K-nearest neighbor (K-NN) graph or minimum spanning tree (MST).
@@ -53,7 +53,8 @@ print(KMD(X, Y, M = 2, Knn = 1, Kernel = base::diag(c(1,1))))
 # 0.9344444. This is essentially the same as specifying the discrete kernel above.
 print(KMD(X, Y, M = 2, Knn = 2, Kernel = "discrete"))
 print(KMD(X, Y, M = 2, Knn = "MST", Kernel = "discrete"))
-# 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here) to estimate the same theoretical quantity.
+# 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here)
+# to estimate the same theoretical quantity.
 }
 \seealso{
 \code{\link{KMD_test}}

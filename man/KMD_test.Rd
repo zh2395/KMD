@@ -89,7 +89,7 @@ Null_KMD = function(id){
   Y = c(rep(1,ni),rep(2,ni),rep(3,ni))
   return(KMD_test(X, Y, M = 3, Knn = "MST", Kernel = "discrete", Permutation = FALSE)[1,1])
 }
-hist(sapply(1:1000, Null_KMD), breaks = c(-Inf,seq(-5,5,length=50),Inf), freq = FALSE,
+hist(sapply(1:500, Null_KMD), breaks = c(-Inf,seq(-5,5,length=50),Inf), freq = FALSE,
   xlim = c(-4,4), ylim = c(0,0.5), main = expression(paste(n[i]," = 100")),
   xlab = expression(paste("normalized ",hat(eta))))
 lines(seq(-5,5,length=1000),dnorm(seq(-5,5,length=1000)),col="red")

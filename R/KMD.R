@@ -93,7 +93,7 @@ get_neighbors = function(X,Knn) {
 #'
 #' @import data.table
 #' @export
-#' @return The algorithm returns a real number which is the sample KMD and asymptotically between 0 and 1.
+#' @return The algorithm returns a real number which is the sample KMD and is asymptotically between 0 and 1.
 #' @seealso \code{\link{KMD_test}}
 #' @examples
 #' n = 60
@@ -110,10 +110,11 @@ get_neighbors = function(X,Knn) {
 #' # 0.9344444. This is essentially the same as specifying the discrete kernel above.
 #' print(KMD(X, Y, M = 2, Knn = 2, Kernel = "discrete"))
 #' print(KMD(X, Y, M = 2, Knn = "MST", Kernel = "discrete"))
-#' # 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here) to estimate the same theoretical quantity.
+#' # 0.9508333, 0.9399074. One can also use other geometric graphs (2-NN graph and MST here)
+#' # to estimate the same theoretical quantity.
 KMD = function(X, Y, M = length(unique(Y)), Knn = 1, Kernel = "discrete") {
   if (!is.numeric(Y)) stop("Input Y is not numeric.")
-  if (sum((Y < 1) || (Y > M)) >= 1) stop("Label Y should be in 1,...,M.")
+  if ((sum(Y < 1) >= 1) || (sum(Y > M) >= 1)) stop("Label Y should be in 1,...,M.")
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
     discrete_kernel = TRUE
@@ -285,14 +286,14 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
 #'   Y = c(rep(1,ni),rep(2,ni),rep(3,ni))
 #'   return(KMD_test(X, Y, M = 3, Knn = "MST", Kernel = "discrete", Permutation = FALSE)[1,1])
 #' }
-#' hist(sapply(1:1000, Null_KMD), breaks = c(-Inf,seq(-5,5,length=50),Inf), freq = FALSE,
+#' hist(sapply(1:500, Null_KMD), breaks = c(-Inf,seq(-5,5,length=50),Inf), freq = FALSE,
 #'   xlim = c(-4,4), ylim = c(0,0.5), main = expression(paste(n[i]," = 100")),
 #'   xlab = expression(paste("normalized ",hat(eta))))
 #' lines(seq(-5,5,length=1000),dnorm(seq(-5,5,length=1000)),col="red")
 #' # The histogram of the normalized KMD is close to that of a standard normal distribution.
 KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Kernel = "discrete", Permutation = TRUE, B = 500) {
   if (!is.numeric(Y)) stop("Input Y is not numeric.")
-  if (sum((Y < 1) || (Y > M)) >= 1) stop("Label Y should be in 1,...,M.")
+  if ((sum(Y < 1)>=1) || (sum(Y > M)>=1)) stop("Label Y should be in 1,...,M.")
   if (is.matrix(Kernel)) discrete_kernel = FALSE
   else if (Kernel == "discrete") {
     discrete_kernel = TRUE
