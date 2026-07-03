@@ -197,7 +197,7 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
   }
   else {
     # Euclidean MST
-    if (packageVersion(mlpack) < "4.8.0") {
+    if (packageVersion("mlpack") < "4.8.0") {
       out = mlpack::emst(as.data.frame(X))$output
     } else {
       out = mlpack::emst(as.data.frame(X))
@@ -364,7 +364,7 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
         }
         else {
           # Euclidean MST
-          if (packageVersion(mlpack) < "4.8.0") {
+          if (packageVersion("mlpack") < "4.8.0") {
             out = mlpack::emst(as.data.frame(X))$output
           } else {
             out = mlpack::emst(as.data.frame(X))
@@ -461,7 +461,7 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
       }
       else {
         # Euclidean MST
-        if (packageVersion(mlpack) < "4.8.0") {
+        if (packageVersion("mlpack") < "4.8.0") {
           out = mlpack::emst(as.data.frame(X))$output
         } else {
           out = mlpack::emst(as.data.frame(X))
