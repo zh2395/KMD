@@ -197,7 +197,11 @@ KMD_MST = function(X, Y, M, discrete_kernel, Kernel, n_i) {
   }
   else {
     # Euclidean MST
-    out = mlpack::emst(as.data.frame(X))$output
+    if (packageVersion("mlpack") < "4.8.0") {
+      out = mlpack::emst(as.data.frame(X))$output
+    } else {
+      out = mlpack::emst(as.data.frame(X))
+    }
     # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
     # the index starts from 0
     out[,1] = out[,1] + 1
@@ -360,7 +364,11 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
         }
         else {
           # Euclidean MST
-          out = mlpack::emst(as.data.frame(X))$output
+          if (packageVersion("mlpack") < "4.8.0") {
+            out = mlpack::emst(as.data.frame(X))$output
+          } else {
+            out = mlpack::emst(as.data.frame(X))
+          }
           # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
           # the index starts from 0
           out[,1] = out[,1] + 1
@@ -453,7 +461,11 @@ KMD_test = function(X, Y, M = length(unique(Y)), Knn = ceiling(length(Y)/10), Ke
       }
       else {
         # Euclidean MST
-        out = mlpack::emst(as.data.frame(X))$output
+        if (packageVersion("mlpack") < "4.8.0") {
+          out = mlpack::emst(as.data.frame(X))$output
+        } else {
+          out = mlpack::emst(as.data.frame(X))
+        }
         # (n-1) by 3 matrix; the first and second columns correspond to "from" and "to" indices
         # the index starts from 0
         out[,1] = out[,1] + 1
