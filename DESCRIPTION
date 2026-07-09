@@ -1,7 +1,7 @@
 Package: KMD
 Type: Package
 Title: Kernel Measure of Multi-Sample Dissimilarity
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Zhen", "Huang", , "zh2395@columbia.edu", role = c("aut", "cre"))
 Maintainer: Zhen Huang <zh2395@columbia.edu>
@@ -16,9 +16,9 @@ Description: Implementations of the kernel measure of multi-sample dissimilarity
     against H1: not all the distributions are equal. Both permutation test and asymptotic test are
     available. These tests are consistent against all alternatives where at least two samples have
     different distributions. For more details on KMD and the associated tests, see Huang, Z. and
-    B. Sen (2022) <arXiv:2210.00634>.
+    B. Sen (2024) <doi:10.1080/01621459.2023.2298036>.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.1.2
-Depends: R (>= 4.0.0), data.table
+RoxygenNote: 7.3.3
+Depends: R (>= 4.5.0), data.table
 Imports: RANN, proxy, mlpack, boot, igraph
